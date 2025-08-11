@@ -2,8 +2,11 @@ package br.com.fiap.oficina.domain.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CPFOrCNPJValidator implements ConstraintValidator<CPFOrCNPJ, String> {
+    private static final Logger logger = LoggerFactory.getLogger(CPFOrCNPJValidator.class);
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
@@ -11,8 +14,14 @@ public class CPFOrCNPJValidator implements ConstraintValidator<CPFOrCNPJ, String
             return true;
         }
 
-        String cleanedValue = value.replaceAll("\\D", "");
+        String cleaned = value.replaceAll("[.\\-/]", "");
 
-        return cleanedValue.length() == 11 || cleanedValue.length() == 14;
+        if (!cleaned.matches("^\\d+$")) {
+            return false;
+        }
+
+        boolean isValidLength = cleaned.length() == 11 || cleaned.length() == 14;
+
+        return isValidLength;
     }
 }

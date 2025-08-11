@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -107,13 +108,19 @@ public class ServiceOrderController {
     @Operation(summary = "Atualizar o status de uma Ordem de Serviço")
     public ResponseEntity<ServiceOrder> updateOrderStatus(
             @PathVariable Long id,
-            @RequestBody UpdateStatusRequestDto statusDto) {
+            @Valid @RequestBody UpdateStatusRequestDto statusDto) {
 
         ServiceOrder serviceOrder = serviceOrderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Order not found"));
 
         OrderStatus oldStatus = serviceOrder.getStatus();
-        OrderStatus newStatus = OrderStatus.valueOf(statusDto.getNewStatus().toUpperCase());
+        OrderStatus newStatus;
+
+        try {
+            newStatus = OrderStatus.valueOf(statusDto.getNewStatus().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de status inválido");
+        }
 
         if (newStatus == OrderStatus.IN_PROGRESS && oldStatus == OrderStatus.AWAITING_APPROVAL) {
             for (OrderItem item : serviceOrder.getItems()) {

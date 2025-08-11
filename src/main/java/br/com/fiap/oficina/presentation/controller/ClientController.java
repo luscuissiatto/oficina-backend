@@ -1,5 +1,6 @@
 package br.com.fiap.oficina.presentation.controller;
 
+import br.com.fiap.oficina.application.dto.ClientRequestDto;
 import br.com.fiap.oficina.domain.model.Client;
 import br.com.fiap.oficina.domain.repository.ClientRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,8 +26,12 @@ public class ClientController {
 
     @PostMapping
     @Operation(summary = "Criar um novo cliente")
-    public ResponseEntity<Client> createClient(@Valid @RequestBody Client client) {
-        Client savedClient = clientRepository.save(client);
+    public ResponseEntity<Client> createClient(@Valid @RequestBody ClientRequestDto clientDto) {
+        Client newClient = new Client();
+        newClient.setName(clientDto.getName());
+        newClient.setDocument(clientDto.getDocument());
+
+        Client savedClient = clientRepository.save(newClient);
         return new ResponseEntity<>(savedClient, HttpStatus.CREATED);
     }
 
@@ -54,11 +59,11 @@ public class ClientController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar um cliente existente")
-    public ResponseEntity<Client> updateClient(@PathVariable Long id, @Valid @RequestBody Client clientDetails) {
+    public ResponseEntity<Client> updateClient(@PathVariable Long id, @Valid @RequestBody ClientRequestDto clientDetailsDto) {
         return clientRepository.findById(id)
                 .map(client -> {
-                    client.setName(clientDetails.getName());
-                    client.setDocument(clientDetails.getDocument());
+                    client.setName(clientDetailsDto.getName());
+                    client.setDocument(clientDetailsDto.getDocument());
                     Client updatedClient = clientRepository.save(client);
                     return ResponseEntity.ok(updatedClient);
                 })

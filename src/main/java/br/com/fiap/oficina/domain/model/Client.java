@@ -9,14 +9,7 @@ import java.util.Objects;
 
 public class Client {
     private Long id;
-
-    @NotBlank(message = "Nome não pode ser vazio")
-    @Size(min = 3, message = "Nome deve ter no mínimo 3 caracteres")
     private String name;
-
-    @NotBlank(message = "Documento não pode ser vazio")
-    @NotNull(message = "Informe o documento")
-    @CPFOrCNPJ
     private String document;
 
     public Client() {
