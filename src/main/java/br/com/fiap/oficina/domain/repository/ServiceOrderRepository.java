@@ -10,4 +10,5 @@ public interface ServiceOrderRepository {
     Optional<ServiceOrder> findById(Long id);
     List<ServiceOrder> findByClientId(Long clientId);
     Optional<ServiceOrder> findActiveByClientDocumentAndVehiclePlate(String document, String plate);
+    boolean existsByClientId(Long clientId);
 }

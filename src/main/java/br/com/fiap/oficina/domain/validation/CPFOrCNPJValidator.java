@@ -10,7 +10,7 @@ public class CPFOrCNPJValidator implements ConstraintValidator<CPFOrCNPJ, String
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null || value.isEmpty()) {
+        if (value == null || value.isBlank()) {
             return true;
         }
 
@@ -20,8 +20,6 @@ public class CPFOrCNPJValidator implements ConstraintValidator<CPFOrCNPJ, String
             return false;
         }
 
-        boolean isValidLength = cleaned.length() == 11 || cleaned.length() == 14;
-
-        return isValidLength;
+        return cleaned.length() == 11 || cleaned.length() == 14;
     }
 }

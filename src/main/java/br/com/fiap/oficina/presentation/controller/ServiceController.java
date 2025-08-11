@@ -1,20 +1,28 @@
 package br.com.fiap.oficina.presentation.controller;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import br.com.fiap.oficina.application.dto.ServiceUpdateRequestDto;
 import br.com.fiap.oficina.domain.model.Service;
 import br.com.fiap.oficina.domain.repository.ServiceRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/services")
 @Tag(name = "Services", description = "Endpoints para gerenciamento de serviços da oficina")
 public class ServiceController {
-
     private final ServiceRepository serviceRepository;
 
     public ServiceController(ServiceRepository serviceRepository) {
@@ -45,12 +53,13 @@ public class ServiceController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar um serviço existente")
-    public ResponseEntity<Service> updateService(@PathVariable Long id, @RequestBody Service serviceDetails) {
+    public ResponseEntity<Service> updateService(@PathVariable Long id, @RequestBody ServiceUpdateRequestDto serviceDetailsDto) {
         return serviceRepository.findById(id)
                 .map(service -> {
-                    service.setName(serviceDetails.getName());
-                    service.setDescription(serviceDetails.getDescription());
-                    service.setPrice(serviceDetails.getPrice());
+                    service.setName(serviceDetailsDto.getName());
+                    service.setDescription(serviceDetailsDto.getDescription());
+                    service.setPrice(serviceDetailsDto.getPrice());
+
                     Service updatedService = serviceRepository.save(service);
                     return ResponseEntity.ok(updatedService);
                 })

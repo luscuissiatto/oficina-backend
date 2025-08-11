@@ -149,4 +149,9 @@ public class ServiceOrderRepositoryImpl implements ServiceOrderRepository {
                 .findActiveByClientDocumentAndVehiclePlate(document, plate, inactiveStatus)
                 .map(this::mapDataToDomain);
     }
+
+    @Override
+    public boolean existsByClientId(Long clientId) {
+        return serviceOrderDao.existsByClientId(clientId);
+    }
 }
