@@ -29,8 +29,6 @@ public class AnalyticsController {
 
     public AnalyticsController(ServiceOrderRepository serviceOrderRepository) {
         this.serviceOrderRepository = serviceOrderRepository;
-
-        logger.info(">>> AnalyticsController bean has been created successfully! <<<");
     }
 
     @GetMapping("/average-service-time")
