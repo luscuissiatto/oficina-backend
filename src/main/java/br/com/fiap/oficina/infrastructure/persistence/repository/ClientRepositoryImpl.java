@@ -59,4 +59,9 @@ public class ClientRepositoryImpl implements ClientRepository {
     public void deleteById(Long id) {
         clientDao.deleteById(id);
     }
+
+    @Override
+    public boolean existsById(Long id) {
+        return clientDao.existsById(id);
+    }
 }

@@ -154,4 +154,15 @@ public class ServiceOrderRepositoryImpl implements ServiceOrderRepository {
     public boolean existsByClientId(Long clientId) {
         return serviceOrderDao.existsByClientId(clientId);
     }
+
+    @Override
+    public List<ServiceOrder> findAllByStatusIn(List<OrderStatus> statuses) {
+        // 1. Chama o DAO para buscar os dados do banco
+        List<ServiceOrderData> dataList = serviceOrderDao.findAllByStatusIn(statuses);
+
+        // 2. Converte a lista de entidades JPA (Data) para o modelo de domínio
+        return dataList.stream()
+                .map(this::mapDataToDomain)
+                .collect(Collectors.toList());
+    }
 }

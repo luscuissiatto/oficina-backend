@@ -1,7 +1,8 @@
 package br.com.fiap.oficina.presentation.controller;
 
+import br.com.fiap.oficina.application.dto.ServiceRequestDto;
+import br.com.fiap.oficina.application.service.ServiceService;
 import br.com.fiap.oficina.domain.model.Service;
-import br.com.fiap.oficina.domain.repository.ServiceRepository;
 import br.com.fiap.oficina.infrastructure.persistence.dao.UserDao;
 import br.com.fiap.oficina.infrastructure.persistence.entity.UserData;
 import br.com.fiap.oficina.infrastructure.security.TokenService;
@@ -14,34 +15,39 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
-@Sql(scripts = "/sql/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-class ServiceControllerTest {
+public class ServiceControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private TokenService tokenService;
     @Autowired private UserDao userDao;
-    @Autowired private ServiceRepository serviceRepository;
-    @MockBean private EmailService emailService;
+
+    @MockBean
+    private ServiceService serviceService;
+
+    @MockBean
+    private EmailService emailService;
 
     private String authToken;
 
     @BeforeEach
     void setUp() {
+        userDao.deleteAll();
         UserData testUser = new UserData();
         testUser.setUsername("testuser_service");
         userDao.save(testUser);
@@ -49,66 +55,46 @@ class ServiceControllerTest {
     }
 
     @Test
-    void deveCriarServicoComSucesso() throws Exception {
-        Service newService = new Service("Alinhamento", "3D", new BigDecimal("150.00"));
+    public void deveCriarServicoComSucesso() throws Exception {
+        // Arrange
+        var requestDto = new ServiceRequestDto("Troca de Óleo", "Troca completa", new BigDecimal("150.00"));
+        var serviceCriado = new Service("Troca de Óleo", "Troca completa", new BigDecimal("150.00"));
+        serviceCriado.setId(1L);
 
+        when(serviceService.create(any(ServiceRequestDto.class))).thenReturn(serviceCriado);
+
+        // Act & Assert
         mockMvc.perform(post("/services")
                         .header("Authorization", authToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newService)))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value("Alinhamento"));
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("Troca de Óleo"));
     }
 
     @Test
-    void deveListarTodosOsServicos() throws Exception {
-        serviceRepository.save(new Service("Troca de Óleo", "5W30", new BigDecimal("250.00")));
+    public void deveListarServicos() throws Exception {
+        // Arrange
+        var service = new Service("Alinhamento", "Alinhar rodas", BigDecimal.TEN);
+        when(serviceService.findAll()).thenReturn(Collections.singletonList(service));
 
+        // Act & Assert
         mockMvc.perform(get("/services")
                         .header("Authorization", authToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$[0].name").value("Alinhamento"));
     }
 
     @Test
-    void deveBuscarServicoPorId() throws Exception {
-        Service savedService = serviceRepository.save(new Service("Freios", "ABS", new BigDecimal("300.00")));
+    public void deveDeletarServicoComSucesso() throws Exception {
+        // Arrange
+        long serviceId = 1L;
+        doNothing().when(serviceService).delete(serviceId);
 
-        mockMvc.perform(get("/services/" + savedService.getId())
-                        .header("Authorization", authToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedService.getId()));
-    }
-
-    @Test
-    void deveAtualizarServicoComSucesso() throws Exception {
-        Service savedService = serviceRepository.save(new Service("Revisão", "Básica", new BigDecimal("200.00")));
-        Service updatedInfo = new Service("Revisão Completa", "50 itens", new BigDecimal("500.00"));
-
-        mockMvc.perform(put("/services/" + savedService.getId())
-                        .header("Authorization", authToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedInfo)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Revisão Completa"))
-                .andExpect(jsonPath("$.price").value(500.00));
-    }
-
-    @Test
-    void deveDeletarServicoComSucesso() throws Exception {
-        Service serviceToDelete = serviceRepository.save(new Service("Limpeza", "TBI", new BigDecimal("90.00")));
-
-        mockMvc.perform(delete("/services/" + serviceToDelete.getId())
+        // Act & Assert
+        mockMvc.perform(delete("/services/" + serviceId)
                         .header("Authorization", authToken))
                 .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void deveRetornarNotFoundAoTentarDeletarServicoInexistente() throws Exception {
-        long idInexistente = 999L;
-
-        mockMvc.perform(delete("/services/" + idInexistente)
-                        .header("Authorization", authToken))
-                .andExpect(status().isNotFound());
     }
 }

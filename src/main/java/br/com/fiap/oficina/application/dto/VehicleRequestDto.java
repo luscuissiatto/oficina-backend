@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Pattern;
 
 public class VehicleRequestDto {
 
-    @Pattern(regexp = "[A-Z]{3}\\d[A-Z\\d]\\d{2}", message = "Formato de placa inválido")
+    @Pattern(regexp = "^[A-Z]{3}[0-9][A-Z][0-9]{2}$|^[A-Z]{3}-?[0-9]{4}$", message = "Formato de placa inválido. Use o padrão Mercosul (ABC1D23) ou o antigo (ABC-1234 ou ABC1234).")
     private String plate;
     private String brand;
     private String model;

@@ -23,4 +23,5 @@ public interface ServiceOrderDao extends JpaRepository<ServiceOrderData, Long> {
             @Param("plate") String plate,
             @Param("statuses") Collection<OrderStatus> statuses);
     boolean existsByClientId(Long clientId);
+    List<ServiceOrderData> findAllByStatusIn(List<OrderStatus> statuses);
 }

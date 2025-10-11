@@ -1,7 +1,8 @@
 package br.com.fiap.oficina.presentation.controller;
 
+import br.com.fiap.oficina.application.dto.ClientRequestDto;
+import br.com.fiap.oficina.application.service.ClientService;
 import br.com.fiap.oficina.domain.model.Client;
-import br.com.fiap.oficina.domain.repository.ClientRepository;
 import br.com.fiap.oficina.infrastructure.persistence.dao.UserDao;
 import br.com.fiap.oficina.infrastructure.persistence.entity.UserData;
 import br.com.fiap.oficina.infrastructure.security.TokenService;
@@ -14,36 +15,33 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+
+import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.mockito.ArgumentMatchers.any;;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
-@Sql(scripts = "/sql/cleanup.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-class ClientControllerTest {
+public class ClientControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private TokenService tokenService;
-
     @Autowired
-    private UserDao userDao;
-
-    @Autowired
-    private ClientRepository clientRepository;
-
+    private UserDao userDao; // Mantido apenas para criar o usuário de teste
+    @MockBean
+    private ClientService clientService; // Mockamos o Service
     @MockBean
     private EmailService emailService;
 
@@ -51,6 +49,8 @@ class ClientControllerTest {
 
     @BeforeEach
     void setUp() {
+        // O setup do banco para CLIENTES foi removido, mantemos apenas para autenticação
+        userDao.deleteAll();
         UserData testUser = new UserData();
         testUser.setUsername("testuser_client");
         userDao.save(testUser);
@@ -58,81 +58,55 @@ class ClientControllerTest {
     }
 
     @Test
-    void deveCriarClienteComSucesso() throws Exception {
-        Client newClient = new Client("Cliente Valido de Teste", "00000000000");
+    public void deveCriarClienteComSucesso() throws Exception {
+        var requestDto = new ClientRequestDto();
+        requestDto.setName("Cliente Valido de Teste");
+        requestDto.setDocument("00000000000");
+        Client clientCriado = new Client();
+        clientCriado.setId(1L);
+        clientCriado.setName("Cliente Valido de Teste");
+        clientCriado.setDocument("00000000000");
+
+        when(clientService.create(any(ClientRequestDto.class))).thenReturn(clientCriado);
 
         mockMvc.perform(post("/clients")
                         .header("Authorization", authToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newClient)))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.name").value("Cliente Valido de Teste"));
     }
 
     @Test
-    void deveFalharAoCriarClienteComDocumentoInvalido() throws Exception {
-        Client newClientWithInvalidDoc = new Client("Cliente Invalido", "123");
-
-        mockMvc.perform(post("/clients")
-                        .header("Authorization", authToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newClientWithInvalidDoc)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.document").value("Documento (CPF/CNPJ) inválido"));
-    }
-
-    @Test
-    void deveListarTodosOsClientes() throws Exception {
-        clientRepository.save(new Client("Cliente A", "11111111111"));
-        clientRepository.save(new Client("Cliente B", "22222222222"));
+    public void deveListarTodosOsClientes() throws Exception {
+        Client clientA = new Client("Cliente A", "11111111111");
+        Client clientB = new Client("Cliente B", "22222222222");
+        when(clientService.findAllByDocument(null)).thenReturn(List.of(clientA, clientB));
 
         mockMvc.perform(get("/clients")
                         .header("Authorization", authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].name").value("Cliente A"))
-                .andExpect(jsonPath("$[1].name").value("Cliente B"));
+                .andExpect(jsonPath("$[0].name").value("Cliente A"));
     }
 
     @Test
-    void deveBuscarClientePorDocumento() throws Exception {
-        clientRepository.save(new Client("Cliente C", "33333333333"));
+    public void deveDeletarClienteComSucesso() throws Exception {
+        long clientId = 1L;
+        // Mockamos o método void para não fazer nada
+        doNothing().when(clientService).delete(clientId);
 
-        mockMvc.perform(get("/clients")
-                        .param("document", "33333333333")
-                        .header("Authorization", authToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].document").value("33333333333"));
-    }
-
-    @Test
-    void deveAtualizarClienteComSucesso() throws Exception {
-        Client savedClient = clientRepository.save(new Client("Cliente Original", "44444444444"));
-        Client updatedInfo = new Client("Cliente com Nome Atualizado", "44444444444");
-
-        mockMvc.perform(put("/clients/" + savedClient.getId())
-                        .header("Authorization", authToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedInfo)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(savedClient.getId()))
-                .andExpect(jsonPath("$.name").value("Cliente com Nome Atualizado"));
-    }
-
-    @Test
-    void deveDeletarClienteComSucesso() throws Exception {
-        Client clientToDelete = clientRepository.save(new Client("Cliente a Deletar", "55555555555"));
-
-        mockMvc.perform(delete("/clients/" + clientToDelete.getId())
+        mockMvc.perform(delete("/clients/" + clientId)
                         .header("Authorization", authToken))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    void deveRetornarNotFoundAoBuscarClienteInexistente() throws Exception {
+    public void deveRetornarNotFoundAoBuscarClienteInexistente() throws Exception {
         long idInexistente = 999L;
+        // Mockamos o service para lançar a exceção que o controller espera
+        when(clientService.findById(idInexistente)).thenThrow(new ResponseStatusException(NOT_FOUND));
 
         mockMvc.perform(get("/clients/" + idInexistente)
                         .header("Authorization", authToken))

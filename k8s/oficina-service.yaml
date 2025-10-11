@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: oficina-service
+spec:
+  type: NodePort # Expõe o serviço para fora do cluster
+  selector:
+    app: oficina # Encontra os pods com a etiqueta "app: oficina"
+  ports:
+    - protocol: TCP
+      port: 8080       # Porta interna do serviço
+      targetPort: 8080 # Porta do nosso contentor Spring Boot
+      nodePort: 30001  # Porta externa no nó do cluster

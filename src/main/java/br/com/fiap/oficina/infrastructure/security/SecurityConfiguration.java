@@ -1,15 +1,18 @@
-package br.com.fiap.oficina.infrastructure.configuration;
+package br.com.fiap.oficina.infrastructure.security;
 
-import br.com.fiap.oficina.infrastructure.security.SecurityFilter;
 import br.com.fiap.oficina.presentation.handler.CustomAccessDeniedHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,15 +20,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfiguration {
 
-    private final SecurityFilter securityFilter;
-    private final CustomAccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    private SecurityFilter securityFilter;
 
-    public SecurityConfig(SecurityFilter securityFilter, CustomAccessDeniedHandler accessDeniedHandler) {
-        this.securityFilter = securityFilter;
-        this.accessDeniedHandler = accessDeniedHandler;
-    }
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;
+
+    // Injetamos nosso UserDetailsService (AuthorizationService)
+    @Autowired
+    private UserDetailsService authorizationService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,14 +44,29 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/service-orders/status").permitAll()
                         .anyRequest().authenticated()
                 )
+                // Adicionamos nosso provedor de autenticação customizado
+                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    // NOVO BEAN: Define explicitamente o provedor de autenticação
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        // Diz ao provedor como encontrar os usuários
+        authProvider.setUserDetailsService(authorizationService);
+        // Diz ao provedor como verificar as senhas
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

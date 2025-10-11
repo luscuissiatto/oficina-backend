@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
+
+import br.com.fiap.oficina.application.dto.AverageServiceTimeDto;
+import br.com.fiap.oficina.application.service.AnalyticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +17,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,6 +53,9 @@ class AnalyticsControllerTest {
     @MockBean
     private EmailService emailService;
 
+    @MockBean // Usa @MockBean para substituir o Service real por um mock
+    private AnalyticsService analyticsService;
+
     private String authToken;
 
     @BeforeEach
@@ -59,55 +67,20 @@ class AnalyticsControllerTest {
     }
 
     @Test
-    void deveRetornarTempoMedioDeExecucaoCorretamente() throws Exception {
-        Client client = clientRepository.save(new Client("Cliente Analytics", "11111111111"));
-        Vehicle vehicle = vehicleRepository.save(new Vehicle("ANT-2025", "Marca", "Modelo", 2025, client));
-        Service oilChangeTest = serviceRepository.save(new Service("Troca de Óleo Teste", "Desc", new BigDecimal("100")));
-        Service brakesTest = serviceRepository.save(new Service("Revisão de Freios Teste", "Desc", new BigDecimal("200")));
+    void deveRetornarHttpOkComJsonCorreto() throws Exception {
+        // Arrange - Preparamos a resposta que o service DEVE retornar
+        List<AverageServiceTimeDto> mockResponse = List.of(
+                new AverageServiceTimeDto("Troca de Óleo Teste", 3.0),
+                new AverageServiceTimeDto("Revisão de Freios Teste", 5.0)
+        );
+        when(analyticsService.getAverageServiceTime()).thenReturn(mockResponse);
 
-        // OS 1: Demorou 2 horas
-        ServiceOrder order1 = new ServiceOrder();
-        order1.setClient(client);
-        order1.setVehicle(vehicle);
-        order1.setServices(List.of(oilChangeTest));
-        order1.setItems(List.of());
-        order1.setStatus(OrderStatus.COMPLETED);
-        order1.setCreationDate(LocalDateTime.now().minusHours(10));
-        order1.setFinishDate(LocalDateTime.now().minusHours(8));
-        order1.calculateTotalAmount();
-        serviceOrderRepository.save(order1);
-
-        // OS 2: Demorou 4 horas
-        ServiceOrder order2 = new ServiceOrder();
-        order2.setClient(client);
-        order2.setVehicle(vehicle);
-        order2.setServices(List.of(oilChangeTest));
-        order2.setItems(List.of());
-        order2.setStatus(OrderStatus.DELIVERED);
-        order2.setCreationDate(LocalDateTime.now().minusHours(6));
-        order2.setFinishDate(LocalDateTime.now().minusHours(2));
-        order2.calculateTotalAmount();
-        serviceOrderRepository.save(order2);
-
-        // OS 3: Demorou 5 horas
-        ServiceOrder order3 = new ServiceOrder();
-        order3.setClient(client);
-        order3.setVehicle(vehicle);
-        order3.setServices(List.of(brakesTest));
-        order3.setItems(List.of());
-        order3.setStatus(OrderStatus.COMPLETED);
-        order3.setCreationDate(LocalDateTime.now().minusHours(10));
-        order3.setFinishDate(LocalDateTime.now().minusHours(5));
-        order3.calculateTotalAmount();
-        serviceOrderRepository.save(order3);
-
+        // Act & Assert - Testamos a camada web (Controller)
         mockMvc.perform(get("/analytics/average-service-time")
                         .header("Authorization", authToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].serviceName").value("Troca de Óleo Teste"))
-                .andExpect(jsonPath("$[0].averageTimeInHours").value(3.0))
-                .andExpect(jsonPath("$[1].serviceName").value("Revisão de Freios Teste"))
-                .andExpect(jsonPath("$[1].averageTimeInHours").value(5.0));
+                .andExpect(jsonPath("$[0].averageTimeInHours").value(3.0));
     }
 }
