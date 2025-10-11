@@ -16,6 +16,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.math.BigDecimal;
+import java.util.Locale; // <<< ADICIONE ESTA IMPORTAÇÃO
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -48,29 +49,39 @@ class EmailServiceTest {
 
     @Test
     void deveEnviarEmailComOsDadosCorretos() {
-        emailService.sendServiceOrderBudget(testOrder);
+        Locale originalLocale = Locale.getDefault(); // 1. Salva o locale original
+        try {
+            Locale.setDefault(new Locale("pt", "BR")); // 2. Força o locale do Brasil para o teste
 
-        verify(mailSender).send(messageCaptor.capture());
+            // --- SEU CÓDIGO DE TESTE ORIGINAL VAI AQUI DENTRO ---
+            emailService.sendServiceOrderBudget(testOrder);
 
-        SimpleMailMessage sentMessage = messageCaptor.getValue();
+            verify(mailSender).send(messageCaptor.capture());
 
-        Assertions.assertNotNull(sentMessage.getTo());
-        assertEquals("email-do-cliente-para-teste@exemplo.com", sentMessage.getTo()[0]);
-        assertEquals("Orçamento da sua Ordem de Serviço #99", sentMessage.getSubject());
+            SimpleMailMessage sentMessage = messageCaptor.getValue();
 
-        String expectedText = """
-            Olá, Cliente Teste de Email!
+            Assertions.assertNotNull(sentMessage.getTo());
+            assertEquals("email-do-cliente-para-teste@exemplo.com", sentMessage.getTo()[0]);
+            assertEquals("Orçamento da sua Ordem de Serviço #99", sentMessage.getSubject());
 
-            O diagnóstico do seu veículo Modelo Email (EMAIL-001) foi concluído.
+            String expectedText = """
+                Olá, Cliente Teste de Email!
 
-            O orçamento total é de R$ 550,75.
+                O diagnóstico do seu veículo Modelo Email (EMAIL-001) foi concluído.
+    
+                O orçamento total é de R$ 550,75.
+    
+                Aguardamos a sua aprovação para iniciar o serviço.
+    
+                Atenciosamente,
+                Equipe da Oficina
+                """;
+            Assertions.assertNotNull(sentMessage.getText());
+            assertEquals(expectedText.trim(), sentMessage.getText().trim());
+            // --- FIM DO CÓDIGO ORIGINAL ---
 
-            Aguardamos a sua aprovação para iniciar o serviço.
-
-            Atenciosamente,
-            Equipe da Oficina
-            """;
-        Assertions.assertNotNull(sentMessage.getText());
-        assertEquals(expectedText.trim(), sentMessage.getText().trim());
+        } finally {
+            Locale.setDefault(originalLocale); // 3. Garante que o locale volte ao normal para outros testes
+        }
     }
 }
