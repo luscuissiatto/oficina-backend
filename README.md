@@ -1,111 +1,158 @@
-# Tech Challenge - Fase 1: Sistema de Gestão para Oficina Mecânica
+# Tech Challenge - Fase 2: Evolução para uma Arquitetura Escalável e Automatizada
+
+## Autor
+- **Nome:** Lucas Eduardo Peters Scuissiatto
+- **RM:** RM365455
+- **Curso:** Pós-Graduação em Arquitetura de Software
+
+---
 
 ## 📖 Descrição
 
-Este projeto é o backend para um Sistema Integrado de Atendimento e Execução de Serviços para uma oficina mecânica. A aplicação foi desenvolvida como parte do Tech Challenge da Pós-Graduação em Arquitetura de Software, com o objetivo de centralizar e organizar os processos da oficina, que antes eram manuais e descentralizados. O sistema foca na gestão de ordens de serviço, clientes, veículos e no controle de peças, aplicando conceitos de Domain-Driven Design (DDD) para garantir um software de alta qualidade e alinhado às regras de negócio.
+Esta é a segunda fase do projeto de backend para um Sistema Integrado de Atendimento para uma oficina mecânica. A solução inicial, desenvolvida na Fase 1, foi evoluída para garantir **qualidade, resiliência e escalabilidade**, incorporando práticas modernas de DevOps e infraestrutura.
 
-## ✨ Funcionalidades Implementadas
+O objetivo desta fase foi transformar a aplicação monolítica em um sistema robusto, preparado para alta disponibilidade e automação. Para isso, o código foi refatorado para seguir os princípios da **Clean Architecture**, a infraestrutura foi provisionada como código (**IaC**) com **Terraform**, a orquestração de contêineres é gerenciada pelo **Kubernetes**, e uma pipeline de **CI/CD** com **GitHub Actions** automatiza os processos de teste, build e publicação de imagens.
 
-O MVP (Minimum Viable Product) do backend implementa as seguintes funcionalidades obrigatórias:
+## ✨ Funcionalidades
 
-* [x] **Gestão de Clientes (CRUD):** Criação, leitura, atualização e exclusão de clientes.
-* [x] **Gestão de Veículos (CRUD):** Gerenciamento de veículos, sempre associados a um cliente.
-* [x] **Gestão de Serviços (CRUD):** Gerenciamento dos serviços oferecidos pela oficina.
-* [x] **Gestão de Peças (CRUD):** Gerenciamento de peças e insumos, com controle de estoque.
-* [x] **Criação e Gestão de Ordens de Serviço (OS):**
-    * Criação de OS associando cliente, veículo, serviços e peças (com quantidade).
-    * Cálculo automático do orçamento total.
-    * Atualização de status do ciclo de vida da OS (ex: `RECEIVED`, `IN_PROGRESS`, `COMPLETED`).
-    * Lógica de negócio para validar e abater o estoque ao iniciar um serviço.
-* [x] **Consulta Cliente:** Endpoint para o cliente consultar o status da sua OS pelo documento e placa do veículo.
-* [x] **Notificações por Email:** Envio de email para o cliente com o orçamento quando o diagnóstico é finalizado (simulado via MailHog).
-* [x] **Análise e Monitoramento:** Endpoint que calcula o tempo médio de execução para cada tipo de serviço finalizado.
-* [x] **Segurança:** Autenticação via API com JWT para todos os endpoints administrativos.
-* [x] **Validação:** Validação de dados de entrada para CPF/CNPJ e placa de veículo.
+O sistema mantém as funcionalidades do MVP da Fase 1, agora sustentadas por uma arquitetura mais avançada:
 
-## 🏗️ Arquitetura e Tecnologias Utilizadas
+* [x] **Gestão Completa (CRUD):** Clientes, Veículos, Serviços e Peças.
+* [x] **Criação e Gestão de Ordens de Serviço (OS):** Ciclo de vida completo, do recebimento à entrega.
+* [x] **Consulta de Status:** Endpoint público para clientes.
+* [x] **Notificações por Email:** Orçamentos enviados via MailHog.
+* [x] **Análise e Monitoramento:** Cálculo de tempo médio de serviços.
+* [x] **Segurança:** Autenticação via API com JWT.
 
-O projeto foi construído como um **backend monolítico** utilizando uma **arquitetura em camadas** fortemente inspirada nos princípios do **Domain-Driven Design (DDD)**.
+## 🏗️ Arquitetura da Solução e Tecnologias
 
+A arquitetura foi redesenhada para suportar escalabilidade e automação.
+
+### Componentes da Arquitetura
+
+* **Clean Architecture:** O código-fonte foi reestruturado nas camadas `domain` (regras de negócio puras), `application` (casos de uso) e `infrastructure` (detalhes de tecnologia como controllers, repositórios JPA, etc.), garantindo baixo acoplamento e alta testabilidade.
+
+* **Infraestrutura como Código (IaC) & Orquestração:**
+    * **Terraform:** Utilizado para provisionar o cluster Kubernetes local de forma automatizada. Os scripts estão na pasta `/infra`.
+    * **Kubernetes (Kind):** O cluster é orquestrado pelo Kubernetes, rodando localmente via Kind (Kubernetes in Docker).
+    * **Manifestos K8s:** A implantação da aplicação e de suas dependências (PostgreSQL, MailHog) é descrita em ficheiros YAML na pasta `/k8s`, contemplando `Deployments`, `Services`, `ConfigMaps`, `Secrets` e `HPA` para auto-scaling.
+
+* **CI/CD (Integração e Entrega Contínua):**
+    * **GitHub Actions:** Uma pipeline automatizada é acionada a cada `push` na branch `main`.
+    * **Fluxo:** A pipeline executa os testes unitários, constrói a imagem Docker da aplicação e a publica no **GitHub Container Registry (GHCR)**, pronta para ser implantada.
+
+### Tecnologias Utilizadas
 * **Linguagem:** Java 17+
 * **Framework Principal:** Spring Boot 3.x
-* **Banco de Dados:** PostgreSQL
-* **Persistência:** Spring Data JPA / Hibernate
-* **Segurança:** Spring Security com autenticação JWT
+* **Segurança:** Spring Security com JWT
+* **Banco de Dados:** PostgreSQL (em contêiner)
+* **Infraestrutura como Código:** Terraform
+* **Orquestração:** Kubernetes (Kind)
+* **Conteinerização:** Docker
+* **CI/CD:** GitHub Actions
+* **Testes:** JUnit 5, Mockito
 * **Documentação da API:** SpringDoc (Swagger)
-* **Testes:** JUnit 5, Mockito, MockMvc
-* **Qualidade e Cobertura de Código:** SonarQube, JaCoCo
-* **Ambiente de Desenvolvimento:** Docker
+* **Servidor de Email (Dev):** MailHog
+
+---
 
 ## 🚀 Como Executar o Projeto
 
-Para executar o ambiente completo localmente, você precisará ter os seguintes pré-requisitos instalados:
-* Git
-* Java (JDK 17 ou superior)
-* Maven
-* Docker
+Existem duas formas de executar o projeto localmente. A primeira, com Terraform e Kubernetes, é o ambiente completo da Fase 2. A segunda, com Docker Compose, é uma alternativa mais simples para desenvolvimento rápido.
 
-**Siga os passos abaixo:**
+### Método 1: Ambiente Completo com Terraform e Kubernetes (Recomendado)
+
+Esta abordagem simula o ambiente de produção, orquestrando todos os serviços com Kubernetes.
+
+**Pré-requisitos:**
+* Docker
+* Terraform
+* Kind
+* kubectl
+
+**Passos:**
 
 1.  **Clone o repositório:**
     ```sh
-    git clone <URL_DO_SEU_REPOSITORIO_PRIVADO>
+    git clone <URL_DO_SEU_REPOSITORIO>
     cd <NOME_DA_PASTA_DO_PROJETO>
     ```
 
-2.  **Construa e inicie os contêineres:**
-    O `docker-compose` irá orquestrar a construção da imagem da sua aplicação e a inicialização de todos os serviços (Aplicação, Banco de Dados, MailHog e SonarQube). Execute o comando na raiz do projeto:
+2.  **Provisione o Cluster Kubernetes:**
+    Navegue até a pasta `infra` e execute os comandos do Terraform.
+    ```sh
+    cd infra
+    terraform init
+    terraform apply
+    ```
+    Confirme a execução digitando `yes`. Aguarde a criação do cluster.
+
+3.  **Construa a Imagem Docker da Aplicação:**
+    Volte para a raiz do projeto e execute o build.
+    ```sh
+    cd ..
+    docker build -t oficina-app:latest .
+    ```
+
+4.  **Carregue a Imagem para o Cluster:**
+    O Kind precisa que a imagem local seja carregada para dentro do seu ambiente.
+    ```sh
+    kind load docker-image oficina-app:latest --name oficina-cluster
+    ```
+
+5.  **Implante a Aplicação e os Serviços:**
+    Aplique todos os manifestos Kubernetes de uma só vez.
+    ```sh
+    kubectl apply -f k8s/
+    ```
+
+6.  **Verifique se tudo está funcionando:**
+    Aguarde um ou dois minutos e verifique o status dos pods. Todos devem estar `Running`.
+    ```sh
+    kubectl get pods
+    ```
+
+### Método 2: Ambiente Simplificado com Docker Compose
+
+Esta abordagem utiliza o `docker-compose.yml` para subir a aplicação e suas dependências diretas, sem a camada de orquestração do Kubernetes.
+
+**Pré-requisitos:**
+* Docker
+
+**Passos:**
+1.  **Clone o repositório.**
+2.  Na raiz do projeto, execute:
     ```sh
     docker compose up --build
     ```
-    Aguarde alguns minutos, especialmente na primeira vez, para que todas as imagens sejam baixadas e os serviços iniciem. O SonarQube pode demorar um pouco mais para ficar operacional.
 
-## 🔗 Acessando os Serviços
+---
 
-Após a inicialização completa, os seguintes serviços estarão disponíveis:
+## 🔗 Acessando os Serviços (Ambiente Kubernetes)
 
-| Serviço | URL de Acesso Local | Descrição |
-| :--- | :--- | :--- |
-| 🚀 **API (Swagger UI)** | `http://localhost:8080/swagger-ui/index.html` | Interface para interagir e testar todos os endpoints da API. |
-| ✉️ **MailHog (Emails)** | `http://localhost:8025` | Caixa de entrada falsa que captura todos os emails enviados pela aplicação. |
-| 📊 **SonarQube (Análise)** | `http://localhost:9000` | Dashboard de análise de qualidade e segurança. (Login: `admin`, Senha: `admin`). |
-| 🐘 **Banco de Dados** | `localhost:5432` | Conexão direta com o PostgreSQL. Use um cliente como DBeaver ou pgAdmin. |
-
-**Credenciais do Banco de Dados (para DBeaver):**
-* **Host:** `localhost`
-* **Porta:** `5432`
-* **Banco de Dados:** `oficina_db`
-* **Usuário:** `user`
-* **Senha:** `password`
+| Serviço                 | URL de Acesso                                | Como Aceder                                                                                                                                   |
+| :---------------------- | :------------------------------------------- |:----------------------------------------------------------------------------------------------------------------------------------------------|
+| 🚀 **API (Swagger UI)** | `http://localhost:8081/swagger-ui/index.html` | Aceda diretamente no navegador. A porta `8081` foi mapeada pelo Terraform.                                                                    |
+| ✉️ **MailHog (Emails)** | `http://localhost:8025`                      | **Abra um novo terminal** e execute `kubectl port-forward svc/mailhog-service 8025:8025`. Mantenha o terminal aberto e acesse pelo navegador. |
 
 ### 🔑 Utilizando a API (Autenticação)
 
-Todos os endpoints administrativos são protegidos. Para utilizá-los:
-1.  No Swagger, execute o endpoint `POST /login` com o seguinte corpo:
+1.  No Swagger, execute o `POST /login` com o corpo:
     ```json
     {
       "username": "admin",
       "password": "password"
     }
     ```
-2.  Copie o `token` JWT retornado na resposta.
-3.  Clique no botão **"Authorize"** no topo da página do Swagger, cole o token no campo "Value" (precedido por `Bearer `) e confirme.
-4.  Agora você pode executar todos os outros endpoints.
+2.  Copie o `token` JWT retornado.
+3.  Clique no botão **"Authorize"**, cole o token no campo (precedido por `Bearer `) e confirme.
+4.  Agora você pode executar todos os outros endpoints protegidos.
 
-## 🧪 Executando Testes e Análises
+## 🔄 Fluxo de CI/CD
 
-Para executar os testes e análises de qualidade localmente, sem precisar do Docker:
+A pipeline no GitHub Actions é acionada a cada `push` na branch `main`. Ela executa os seguintes passos:
+1.  **Testa:** Roda todos os testes unitários e de integração com Maven.
+2.  **Constrói:** Gera a imagem Docker da aplicação.
+3.  **Publica:** Envia a imagem para o GitHub Container Registry, pronta para ser usada em um deploy.
 
-1.  **Executar Testes e Gerar Relatório de Cobertura:**
-    ```sh
-    mvn clean install
-    ```
-    O relatório de cobertura de testes do JaCoCo estará disponível em `target/site/jacoco/index.html`.
-
-2.  **Executar Análise do SonarQube:**
-    * Garanta que o SonarQube está rodando (`docker compose up sonarqube`).
-    * Gere um token de acesso na interface do Sonar.
-    * Execute o comando:
-    ```sh
-    mvn verify sonar:sonar -Dsonar.token=<SEU_TOKEN_DO_SONAR>
-    ```
+Você pode acompanhar as execuções na aba **[Actions](https://github.com/luscuissiatto/tech-challenge-oficina/actions)** do repositório.
