@@ -44,7 +44,7 @@ public class ClientService {
     }
 
     public Client update(Long id, ClientUpdateRequestDto clientDetailsDto) {
-        Client client = findById(id); // Reutiliza o método que já lança exceção
+        Client client = findById(id);
 
         if (clientDetailsDto.getName() != null) {
             client.setName(clientDetailsDto.getName());
@@ -57,7 +57,7 @@ public class ClientService {
     }
 
     public void delete(Long id) {
-        Client client = findById(id); // Garante que o cliente existe
+        Client client = findById(id);
 
         if (serviceOrderRepository.existsByClientId(client.getId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é possível excluir um cliente que possui ordens de serviço.");

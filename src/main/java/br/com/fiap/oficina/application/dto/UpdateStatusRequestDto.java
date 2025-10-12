@@ -10,7 +10,6 @@ public class UpdateStatusRequestDto {
             allowableValues = {"IN_DIAGNOSIS", "AWAITING_APPROVAL", "IN_PROGRESS", "COMPLETED", "DELIVERED"})
     private String newStatus;
 
-    // Getters e Setters
     public String getNewStatus() {
         return newStatus;
     }

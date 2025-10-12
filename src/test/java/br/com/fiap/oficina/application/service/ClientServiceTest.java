@@ -27,7 +27,6 @@ public class ClientServiceTest {
 
     @Test
     public void deveDeletarCliente_quandoNaoPossuiOrdemDeServico() {
-        // Arrange
         long clientId = 1L;
         Client client = new Client("Teste", "12345678901");
         client.setId(clientId);
@@ -35,18 +34,13 @@ public class ClientServiceTest {
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(serviceOrderRepository.existsByClientId(clientId)).thenReturn(false);
 
-        // Act
-        // Garante que nenhuma exceção foi lançada
         assertDoesNotThrow(() -> clientService.delete(clientId));
 
-        // Assert
-        // Verifica se o método de deleção do repositório foi chamado
         verify(clientRepository, times(1)).deleteById(clientId);
     }
 
     @Test
     public void deveLancarExcecao_aoTentarDeletarCliente_comOrdemDeServico() {
-        // Arrange
         long clientId = 1L;
         Client client = new Client("Teste", "12345678901");
         client.setId(clientId);
@@ -54,21 +48,16 @@ public class ClientServiceTest {
         when(clientRepository.findById(clientId)).thenReturn(Optional.of(client));
         when(serviceOrderRepository.existsByClientId(clientId)).thenReturn(true);
 
-        // Act & Assert
-        // Verifica se a exceção correta foi lançada
         assertThrows(ResponseStatusException.class, () -> clientService.delete(clientId));
 
-        // Verifica que o método de deleção NUNCA foi chamado
         verify(clientRepository, never()).deleteById(clientId);
     }
 
     @Test
     public void deveLancarExcecao_aoBuscarClienteInexistente() {
-        // Arrange
         long clientId = 99L;
         when(clientRepository.findById(clientId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(ResponseStatusException.class, () -> clientService.findById(clientId));
     }
 }

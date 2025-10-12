@@ -20,16 +20,10 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponseDto login(AuthenticationRequestDto dto) {
-        // 1. Cria o token de autenticação com usuário e senha
         var usernamePassword = new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword());
-
-        // 2. Autentica o usuário usando o manager do Spring Security
         var auth = this.authenticationManager.authenticate(usernamePassword);
-
-        // 3. Gera o token JWT com base no usuário autenticado
         var token = tokenService.generateToken((UserData) auth.getPrincipal());
 
-        // 4. Retorna o DTO de resposta com o token
         return new AuthenticationResponseDto(token);
     }
 }

@@ -42,7 +42,7 @@ public class ServiceOrderControllerTest {
     @Autowired private UserDao userDao;
 
     @MockBean
-    private ServiceOrderService serviceOrderService; // Simulamos o Service
+    private ServiceOrderService serviceOrderService;
 
     @MockBean
     private EmailService emailService;
@@ -60,16 +60,13 @@ public class ServiceOrderControllerTest {
 
     @Test
     public void deveCriarOrdemDeServicoComSucesso() throws Exception {
-        // Arrange
-        var requestDto = new ServiceOrderRequestDto(); // DTO com dados de entrada
+        var requestDto = new ServiceOrderRequestDto();
         ServiceOrder orderCriada = new ServiceOrder();
         orderCriada.setId(1L);
         orderCriada.setStatus(OrderStatus.RECEIVED);
 
-        // Dizemos ao mock do service o que retornar quando o método 'create' for chamado
         when(serviceOrderService.create(any(ServiceOrderRequestDto.class))).thenReturn(orderCriada);
 
-        // Act & Assert
         mockMvc.perform(post("/service-orders")
                         .header("Authorization", authToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -81,7 +78,6 @@ public class ServiceOrderControllerTest {
 
     @Test
     public void deveAtualizarStatusComSucesso() throws Exception {
-        // Arrange
         var requestDto = new UpdateStatusRequestDto();
         requestDto.setNewStatus("IN_PROGRESS");
         ServiceOrder orderAtualizada = new ServiceOrder();
@@ -90,7 +86,6 @@ public class ServiceOrderControllerTest {
 
         when(serviceOrderService.updateStatus(anyLong(), any(UpdateStatusRequestDto.class))).thenReturn(orderAtualizada);
 
-        // Act & Assert
         mockMvc.perform(patch("/service-orders/1/status")
                         .header("Authorization", authToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -101,11 +96,9 @@ public class ServiceOrderControllerTest {
 
     @Test
     public void deveListarOrdensDeServicoComSucesso() throws Exception {
-        // Arrange
         var summaryDto = new ServiceOrderSummaryDto(1L, "Cliente Teste", "ABC-1234", OrderStatus.IN_PROGRESS, BigDecimal.TEN, LocalDateTime.now());
         when(serviceOrderService.findAllSummaries()).thenReturn(Collections.singletonList(summaryDto));
 
-        // Act & Assert
         mockMvc.perform(get("/service-orders")
                         .header("Authorization", authToken))
                 .andExpect(status().isOk())

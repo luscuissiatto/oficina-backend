@@ -53,19 +53,15 @@ public class PartServiceTest {
 
     @Test
     public void deveDeletarPecaComSucesso() {
-        // Arrange
         long partId = 1L;
         Part part = new Part("Pneu", "Aro 15", BigDecimal.TEN, 1);
-        part.setId(partId); // <-- A CORREÇÃO É ADICIONAR ESTA LINHA
+        part.setId(partId);
 
-        // Agora o objeto 'part' que o mock retorna tem o ID correto
         when(partRepository.findById(partId)).thenReturn(Optional.of(part));
         doNothing().when(partRepository).deleteById(partId);
 
-        // Act
         assertDoesNotThrow(() -> partService.delete(partId));
 
-        // Assert
         verify(partRepository, times(1)).deleteById(partId);
     }
 }

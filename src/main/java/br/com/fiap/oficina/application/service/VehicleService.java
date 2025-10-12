@@ -31,7 +31,6 @@ public class VehicleService {
     }
 
     public List<Vehicle> findByClientId(Long clientId) {
-        // Valida se o cliente existe antes de buscar os veículos
         if (!clientRepository.existsById(clientId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado");
         }
@@ -44,7 +43,7 @@ public class VehicleService {
     }
 
     public Vehicle update(Long id, VehicleRequestDto dto) {
-        Vehicle vehicle = findById(id); // Reutiliza o findById
+        Vehicle vehicle = findById(id);
         Client client = clientRepository.findById(dto.getClientId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado"));
 
@@ -58,7 +57,7 @@ public class VehicleService {
     }
 
     public void delete(Long id) {
-        Vehicle vehicle = findById(id); // Garante que o veículo existe
+        Vehicle vehicle = findById(id);
         vehicleRepository.deleteById(vehicle.getId());
     }
 }

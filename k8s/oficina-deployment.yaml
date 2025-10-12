@@ -14,14 +14,12 @@ spec:
     spec:
       containers:
         - name: oficina-app
-          image: oficina-app:latest # O nome da imagem que vamos construir
-          imagePullPolicy: IfNotPresent # Diz ao K8s para usar a imagem local
+          image: oficina-app:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
-            # --- Configurações do Banco de Dados ---
             - name: SPRING_DATASOURCE_URL
-              # O nome 'postgres-service' é o nome que demos ao Service do banco
               value: jdbc:postgresql://postgres-service:5432/oficina_db
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
@@ -33,15 +31,13 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: postgres-password
-
-            # --- Configuração de Segurança ---
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: oficina-secret
                   key: jwt-secret
             - name: SPRING_MAIL_HOST
-              value: mailhog-service # O nome do Service que criámos
+              value: mailhog-service
             - name: SPRING_MAIL_PORT
               value: "1025"
             - name: APP_ADMIN_DEFAULT_PASSWORD

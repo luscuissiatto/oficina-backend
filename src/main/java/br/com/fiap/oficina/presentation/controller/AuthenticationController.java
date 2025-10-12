@@ -2,7 +2,7 @@ package br.com.fiap.oficina.presentation.controller;
 
 import br.com.fiap.oficina.application.dto.AuthenticationRequestDto;
 import br.com.fiap.oficina.application.dto.AuthenticationResponseDto;
-import br.com.fiap.oficina.application.service.AuthenticationService; // Importa o novo service
+import br.com.fiap.oficina.application.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Authentication", description = "Endpoint para obter o token de autenticação")
 public class AuthenticationController {
 
-    // AGORA INJETA APENAS O AUTHENTICATIONSERVICE
     private final AuthenticationService authenticationService;
 
     public AuthenticationController(AuthenticationService authenticationService) {
@@ -24,7 +23,6 @@ public class AuthenticationController {
 
     @PostMapping
     public ResponseEntity<AuthenticationResponseDto> login(@RequestBody AuthenticationRequestDto dto) {
-        // DELEGA TODA A LÓGICA PARA O SERVICE
         var responseDto = authenticationService.login(dto);
         return ResponseEntity.ok(responseDto);
     }

@@ -37,7 +37,7 @@ public class PartService {
     }
 
     public Part update(Long id, PartRequestDto dto) {
-        Part part = findById(id); // Reutiliza o findById que já trata o erro 404
+        Part part = findById(id);
         part.setName(dto.name());
         part.setDescription(dto.description());
         part.setPrice(dto.price());
@@ -46,7 +46,7 @@ public class PartService {
     }
 
     public void delete(Long id) {
-        Part part = findById(id); // Garante que a peça existe antes de tentar deletar
+        Part part = findById(id);
         partRepository.deleteById(part.getId());
     }
 }

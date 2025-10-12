@@ -28,7 +28,6 @@ public class SecurityConfiguration {
     @Autowired
     private CustomAccessDeniedHandler accessDeniedHandler;
 
-    // Injetamos nosso UserDetailsService (AuthorizationService)
     @Autowired
     private UserDetailsService authorizationService;
 
@@ -44,19 +43,15 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/service-orders/status").permitAll()
                         .anyRequest().authenticated()
                 )
-                // Adicionamos nosso provedor de autenticação customizado
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    // NOVO BEAN: Define explicitamente o provedor de autenticação
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        // Diz ao provedor como encontrar os usuários
         authProvider.setUserDetailsService(authorizationService);
-        // Diz ao provedor como verificar as senhas
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }

@@ -1,7 +1,5 @@
 package br.com.fiap.oficina.presentation.controller;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -23,11 +21,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.com.fiap.oficina.domain.model.Client;
-import br.com.fiap.oficina.domain.model.OrderStatus;
-import br.com.fiap.oficina.domain.model.Service;
-import br.com.fiap.oficina.domain.model.ServiceOrder;
-import br.com.fiap.oficina.domain.model.Vehicle;
 import br.com.fiap.oficina.domain.repository.ClientRepository;
 import br.com.fiap.oficina.domain.repository.ServiceOrderRepository;
 import br.com.fiap.oficina.domain.repository.ServiceRepository;
@@ -53,7 +46,7 @@ class AnalyticsControllerTest {
     @MockBean
     private EmailService emailService;
 
-    @MockBean // Usa @MockBean para substituir o Service real por um mock
+    @MockBean
     private AnalyticsService analyticsService;
 
     private String authToken;
@@ -68,14 +61,12 @@ class AnalyticsControllerTest {
 
     @Test
     void deveRetornarHttpOkComJsonCorreto() throws Exception {
-        // Arrange - Preparamos a resposta que o service DEVE retornar
         List<AverageServiceTimeDto> mockResponse = List.of(
                 new AverageServiceTimeDto("Troca de Óleo Teste", 3.0),
                 new AverageServiceTimeDto("Revisão de Freios Teste", 5.0)
         );
         when(analyticsService.getAverageServiceTime()).thenReturn(mockResponse);
 
-        // Act & Assert - Testamos a camada web (Controller)
         mockMvc.perform(get("/analytics/average-service-time")
                         .header("Authorization", authToken))
                 .andExpect(status().isOk())

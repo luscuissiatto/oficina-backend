@@ -56,14 +56,12 @@ public class ServiceControllerTest {
 
     @Test
     public void deveCriarServicoComSucesso() throws Exception {
-        // Arrange
         var requestDto = new ServiceRequestDto("Troca de Óleo", "Troca completa", new BigDecimal("150.00"));
         var serviceCriado = new Service("Troca de Óleo", "Troca completa", new BigDecimal("150.00"));
         serviceCriado.setId(1L);
 
         when(serviceService.create(any(ServiceRequestDto.class))).thenReturn(serviceCriado);
 
-        // Act & Assert
         mockMvc.perform(post("/services")
                         .header("Authorization", authToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -75,11 +73,9 @@ public class ServiceControllerTest {
 
     @Test
     public void deveListarServicos() throws Exception {
-        // Arrange
         var service = new Service("Alinhamento", "Alinhar rodas", BigDecimal.TEN);
         when(serviceService.findAll()).thenReturn(Collections.singletonList(service));
 
-        // Act & Assert
         mockMvc.perform(get("/services")
                         .header("Authorization", authToken))
                 .andExpect(status().isOk())
@@ -88,11 +84,9 @@ public class ServiceControllerTest {
 
     @Test
     public void deveDeletarServicoComSucesso() throws Exception {
-        // Arrange
         long serviceId = 1L;
         doNothing().when(serviceService).delete(serviceId);
 
-        // Act & Assert
         mockMvc.perform(delete("/services/" + serviceId)
                         .header("Authorization", authToken))
                 .andExpect(status().isNoContent());

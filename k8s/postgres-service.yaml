@@ -4,8 +4,8 @@ metadata:
   name: postgres-service
 spec:
   selector:
-    app: postgres  # Encontra os pods com a etiqueta "app: postgres"
+    app: postgres
   ports:
     - protocol: TCP
-      port: 5432       # A porta que outros pods usarão para se ligar
-      targetPort: 5432 # A porta do contentor do PostgreSQL
+      port: 5432
+      targetPort: 5432

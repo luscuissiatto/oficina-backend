@@ -2,7 +2,7 @@ package br.com.fiap.oficina.presentation.controller;
 
 import br.com.fiap.oficina.application.dto.ClientRequestDto;
 import br.com.fiap.oficina.application.dto.ClientUpdateRequestDto;
-import br.com.fiap.oficina.application.service.ClientService; // Importa o Service
+import br.com.fiap.oficina.application.service.ClientService;
 import br.com.fiap.oficina.domain.model.Client;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +18,6 @@ import java.util.List;
 @Tag(name = "Clients", description = "Endpoints para gerenciamento de clientes")
 public class ClientController {
 
-    // AGORA INJETA O SERVICE, E NÃO MAIS OS REPOSITORIES
     private final ClientService clientService;
 
     public ClientController(ClientService clientService) {
@@ -28,7 +27,6 @@ public class ClientController {
     @PostMapping
     @Operation(summary = "Criar um novo cliente")
     public ResponseEntity<Client> createClient(@Valid @RequestBody ClientRequestDto clientDto) {
-        // Apenas chama o service e retorna
         Client savedClient = clientService.create(clientDto);
         return new ResponseEntity<>(savedClient, HttpStatus.CREATED);
     }
@@ -36,7 +34,6 @@ public class ClientController {
     @GetMapping
     @Operation(summary = "Listar todos os clientes")
     public ResponseEntity<List<Client>> getAllClients(@RequestParam(name = "document", required = false) String document) {
-        // Apenas chama o service e retorna
         List<Client> clients = clientService.findAllByDocument(document);
         return ResponseEntity.ok(clients);
     }
@@ -44,7 +41,6 @@ public class ClientController {
     @GetMapping("/{id}")
     @Operation(summary = "Buscar um cliente por ID")
     public ResponseEntity<Client> getClientById(@PathVariable Long id) {
-        // Apenas chama o service e retorna
         Client client = clientService.findById(id);
         return ResponseEntity.ok(client);
     }
@@ -52,7 +48,6 @@ public class ClientController {
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar um cliente existente")
     public ResponseEntity<Client> updateClient(@PathVariable Long id, @Valid @RequestBody ClientUpdateRequestDto clientDetailsDto) {
-        // Apenas chama o service e retorna
         Client updatedClient = clientService.update(id, clientDetailsDto);
         return ResponseEntity.ok(updatedClient);
     }
@@ -60,7 +55,6 @@ public class ClientController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar um cliente")
     public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
-        // Apenas chama o service e retorna
         clientService.delete(id);
         return ResponseEntity.noContent().build();
     }

@@ -1,7 +1,5 @@
-# Nome da sua pipeline
 name: Oficina CI/CD Pipeline
 
-# Gatilho: push para a branch 'main'
 on:
   push:
     branches: [ "main" ]
@@ -9,14 +7,11 @@ on:
 jobs:
   build-test-and-push:
     runs-on: ubuntu-latest
-
-    # Adicionamos permissões para o job poder escrever no GitHub Packages
     permissions:
       contents: read
       packages: write
 
     steps:
-      # --- Passos que você já tem ---
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -29,9 +24,6 @@ jobs:
       - name: Run tests with Maven
         run: mvn test
 
-      # --- NOVOS PASSOS ADICIONADOS ABAIXO ---
-
-      # Passo 4: Login no GitHub Container Registry (GHCR)
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -39,10 +31,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GH_PAT }}
 
-      # Passo 5: Construir e enviar a imagem Docker para o GHCR
+      - name: Lowercase repository owner
+        id: lowercase_owner
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/oficina-app:${{ github.sha }}
+          tags: ghcr.io/${{ steps.lowercase_owner.outputs.owner }}/oficina-app:latest

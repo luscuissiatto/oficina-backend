@@ -37,7 +37,7 @@ public class ServiceService {
     }
 
     public Service update(Long id, ServiceUpdateRequestDto dto) {
-        Service service = findById(id); // Reutiliza findById para tratar erro 404
+        Service service = findById(id);
         service.setName(dto.getName());
         service.setDescription(dto.getDescription());
         service.setPrice(dto.getPrice());
@@ -45,7 +45,7 @@ public class ServiceService {
     }
 
     public void delete(Long id) {
-        Service service = findById(id); // Garante que o serviço existe
+        Service service = findById(id);
         serviceRepository.deleteById(service.getId());
     }
 }

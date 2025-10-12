@@ -36,10 +36,10 @@ public class PartControllerTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private TokenService tokenService;
-    @Autowired private UserDao userDao; // Mantido apenas para autenticação
+    @Autowired private UserDao userDao;
 
     @MockBean
-    private PartService partService; // Mockamos o Service
+    private PartService partService;
 
     @MockBean
     private EmailService emailService;
@@ -48,7 +48,7 @@ public class PartControllerTest {
 
     @BeforeEach
     void setUp() {
-        userDao.deleteAll(); // Limpa para garantir um usuário de teste limpo
+        userDao.deleteAll();
         UserData testUser = new UserData();
         testUser.setUsername("testuser_part");
         userDao.save(testUser);

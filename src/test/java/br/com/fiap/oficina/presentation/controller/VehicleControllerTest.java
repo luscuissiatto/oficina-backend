@@ -56,7 +56,6 @@ public class VehicleControllerTest {
 
     @Test
     public void deveCriarVeiculoComSucesso() throws Exception {
-        // Arrange
         var client = new Client("Cliente Teste", "123");
         client.setId(1L);
 
@@ -72,7 +71,6 @@ public class VehicleControllerTest {
 
         when(vehicleService.create(any(VehicleRequestDto.class))).thenReturn(vehicleCriado);
 
-        // Act & Assert
         mockMvc.perform(post("/vehicles")
                         .header("Authorization", authToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -84,7 +82,6 @@ public class VehicleControllerTest {
 
     @Test
     public void deveListarVeiculosDeUmCliente() throws Exception {
-        // Arrange
         long clientId = 1L;
         var client = new Client("Cliente Teste", "123");
         client.setId(clientId);
@@ -92,7 +89,6 @@ public class VehicleControllerTest {
 
         when(vehicleService.findByClientId(clientId)).thenReturn(Collections.singletonList(vehicle));
 
-        // Act & Assert
         mockMvc.perform(get("/vehicles/client/" + clientId)
                         .header("Authorization", authToken))
                 .andExpect(status().isOk())

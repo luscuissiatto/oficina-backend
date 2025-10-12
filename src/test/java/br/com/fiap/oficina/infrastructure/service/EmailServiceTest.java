@@ -16,7 +16,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.math.BigDecimal;
-import java.util.Locale; // <<< ADICIONE ESTA IMPORTAÇÃO
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -49,11 +49,10 @@ class EmailServiceTest {
 
     @Test
     void deveEnviarEmailComOsDadosCorretos() {
-        Locale originalLocale = Locale.getDefault(); // 1. Salva o locale original
+        Locale originalLocale = Locale.getDefault();
         try {
-            Locale.setDefault(new Locale("pt", "BR")); // 2. Força o locale do Brasil para o teste
+            Locale.setDefault(new Locale("pt", "BR"));
 
-            // --- SEU CÓDIGO DE TESTE ORIGINAL VAI AQUI DENTRO ---
             emailService.sendServiceOrderBudget(testOrder);
 
             verify(mailSender).send(messageCaptor.capture());
@@ -78,10 +77,9 @@ class EmailServiceTest {
                 """;
             Assertions.assertNotNull(sentMessage.getText());
             assertEquals(expectedText.trim(), sentMessage.getText().trim());
-            // --- FIM DO CÓDIGO ORIGINAL ---
 
         } finally {
-            Locale.setDefault(originalLocale); // 3. Garante que o locale volte ao normal para outros testes
+            Locale.setDefault(originalLocale);
         }
     }
 }

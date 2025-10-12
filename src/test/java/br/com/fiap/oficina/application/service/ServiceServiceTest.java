@@ -56,12 +56,10 @@ public class ServiceServiceTest {
         // Arrange
         long serviceId = 1L;
         var service = new Service("Alinhamento", "Alinhar rodas", BigDecimal.TEN);
-        service.setId(serviceId); // <-- A CORREÇÃO É ESTA LINHA!
+        service.setId(serviceId);
 
-        // Agora, quando o findById retornar este objeto, ele terá o ID correto.
         when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
 
-        // Esta linha continua igual, esperando uma chamada com serviceId (1L)
         doNothing().when(serviceRepository).deleteById(serviceId);
 
         // Act

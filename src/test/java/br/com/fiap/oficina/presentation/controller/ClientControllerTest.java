@@ -39,9 +39,9 @@ public class ClientControllerTest {
     @Autowired
     private TokenService tokenService;
     @Autowired
-    private UserDao userDao; // Mantido apenas para criar o usuário de teste
+    private UserDao userDao;
     @MockBean
-    private ClientService clientService; // Mockamos o Service
+    private ClientService clientService;
     @MockBean
     private EmailService emailService;
 
@@ -49,7 +49,6 @@ public class ClientControllerTest {
 
     @BeforeEach
     void setUp() {
-        // O setup do banco para CLIENTES foi removido, mantemos apenas para autenticação
         userDao.deleteAll();
         UserData testUser = new UserData();
         testUser.setUsername("testuser_client");
@@ -94,7 +93,6 @@ public class ClientControllerTest {
     @Test
     public void deveDeletarClienteComSucesso() throws Exception {
         long clientId = 1L;
-        // Mockamos o método void para não fazer nada
         doNothing().when(clientService).delete(clientId);
 
         mockMvc.perform(delete("/clients/" + clientId)
@@ -105,7 +103,6 @@ public class ClientControllerTest {
     @Test
     public void deveRetornarNotFoundAoBuscarClienteInexistente() throws Exception {
         long idInexistente = 999L;
-        // Mockamos o service para lançar a exceção que o controller espera
         when(clientService.findById(idInexistente)).thenThrow(new ResponseStatusException(NOT_FOUND));
 
         mockMvc.perform(get("/clients/" + idInexistente)
