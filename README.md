@@ -30,8 +30,11 @@ A arquitetura foi redesenhada para suportar escalabilidade e automação.
 
 ### Componentes da Arquitetura
 
-* **Clean Architecture:** O código-fonte foi reestruturado nas camadas `domain` (regras de negócio puras), `application` (casos de uso) e `infrastructure` (detalhes de tecnologia como controllers, repositórios JPA, etc.), garantindo baixo acoplamento e alta testabilidade.
-
+* **Clean Architecture:** O código-fonte foi reestruturado para garantir baixo acoplamento e alta testabilidade, com as seguintes camadas principais:
+    * **`domain`**: Contém as regras de negócio e entidades puras.
+    * **`application`**: Orquestra os casos de uso e a lógica da aplicação.
+    * **`presentation`**: A camada de entrada da API, responsável por expor os endpoints REST (Controllers) e tratar os erros de requisição (Handlers).
+    * **`infrastructure`**: Implementa os detalhes técnicos e a comunicação com o mundo exterior, como o acesso ao banco de dados (`persistence`), o envio de e-mails (`service`) e a configuração de segurança (`security`).
 * **Infraestrutura como Código (IaC) & Orquestração:**
     * **Terraform:** Utilizado para provisionar o cluster Kubernetes local de forma automatizada. Os scripts estão na pasta `/infra`.
     * **Kubernetes (Kind):** O cluster é orquestrado pelo Kubernetes, rodando localmente via Kind (Kubernetes in Docker).
