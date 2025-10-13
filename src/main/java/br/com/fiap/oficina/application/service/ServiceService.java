@@ -20,6 +20,7 @@ public class ServiceService {
     }
 
     public Service create(ServiceRequestDto dto) {
+        System.out.println("Teste Actions");
         Service newService = new Service();
         newService.setName(dto.name());
         newService.setDescription(dto.description());

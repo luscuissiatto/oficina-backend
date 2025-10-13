@@ -19,8 +19,8 @@ resource "kind_cluster" "oficina_cluster" {
     node {
       role = "control-plane"
       extra_port_mappings {
-        container_port = 30001      # Porta DENTRO do cluster
-        host_port      = 8081       # Porta FORA do cluster (na sua máquina)
+        container_port = 30001
+        host_port      = 8081
         protocol       = "TCP"
       }
     }
