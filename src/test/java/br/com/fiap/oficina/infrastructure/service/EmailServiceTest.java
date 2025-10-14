@@ -1,6 +1,7 @@
 package br.com.fiap.oficina.infrastructure.service;
 
 import br.com.fiap.oficina.domain.model.Client;
+import br.com.fiap.oficina.domain.model.OrderStatus;
 import br.com.fiap.oficina.domain.model.ServiceOrder;
 import br.com.fiap.oficina.domain.model.Vehicle;
 import org.junit.jupiter.api.Assertions;
@@ -45,6 +46,7 @@ class EmailServiceTest {
         testOrder.setClient(client);
         testOrder.setVehicle(vehicle);
         testOrder.setTotalAmount(new BigDecimal("550.75"));
+        testOrder.setStatus(OrderStatus.AWAITING_APPROVAL);
     }
 
     @Test
@@ -53,7 +55,7 @@ class EmailServiceTest {
         try {
             Locale.setDefault(new Locale("pt", "BR"));
 
-            emailService.sendServiceOrderBudget(testOrder);
+            emailService.sendStatusUpdateNotification(testOrder);
 
             verify(mailSender).send(messageCaptor.capture());
 
@@ -65,19 +67,16 @@ class EmailServiceTest {
 
             String expectedText = """
                 Olá, Cliente Teste de Email!
-
                 O diagnóstico do seu veículo Modelo Email (EMAIL-001) foi concluído.
-    
                 O orçamento total é de R$ 550,75.
-    
                 Aguardamos a sua aprovação para iniciar o serviço.
-    
-                Atenciosamente,
-                Equipe da Oficina
-                """;
-            Assertions.assertNotNull(sentMessage.getText());
-            assertEquals(expectedText.trim(), sentMessage.getText().trim());
 
+
+                Atenciosamente,
+                Equipe da Oficina""";
+
+            Assertions.assertNotNull(sentMessage.getText());
+            assertEquals(expectedText.trim().replaceAll("\\r\\n", "\n"), sentMessage.getText().trim().replaceAll("\\r\\n", "\n"));
         } finally {
             Locale.setDefault(originalLocale);
         }

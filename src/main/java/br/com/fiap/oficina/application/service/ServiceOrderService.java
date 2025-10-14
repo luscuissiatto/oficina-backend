@@ -88,15 +88,15 @@ public class ServiceOrderService {
 
         serviceOrder.setStatus(newStatus);
 
-        if (newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.DELIVERED) {
-            serviceOrder.setFinishDate(LocalDateTime.now());
+        if (newStatus == OrderStatus.COMPLETED || newStatus == OrderStatus.DELIVERED || newStatus == OrderStatus.REFUSED) {
+            if (serviceOrder.getFinishDate() == null) {
+                serviceOrder.setFinishDate(LocalDateTime.now());
+            }
         }
 
         ServiceOrder updatedOrder = serviceOrderRepository.save(serviceOrder);
 
-        if (newStatus == OrderStatus.AWAITING_APPROVAL && oldStatus == OrderStatus.IN_DIAGNOSIS) {
-            emailService.sendServiceOrderBudget(updatedOrder);
-        }
+        emailService.sendStatusUpdateNotification(updatedOrder);
 
         return updatedOrder;
     }

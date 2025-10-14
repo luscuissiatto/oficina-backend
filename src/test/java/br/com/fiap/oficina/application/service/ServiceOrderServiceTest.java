@@ -101,6 +101,6 @@ class ServiceOrderServiceTest {
         serviceOrderService.updateStatus(1L, requestDto);
 
         // Assert
-        verify(emailService, times(1)).sendServiceOrderBudget(order);
+        verify(emailService, times(1)).sendStatusUpdateNotification(order);
     }
 }
