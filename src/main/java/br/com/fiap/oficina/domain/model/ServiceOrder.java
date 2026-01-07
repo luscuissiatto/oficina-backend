@@ -3,6 +3,7 @@ package br.com.fiap.oficina.domain.model;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServiceOrder {
@@ -13,8 +14,10 @@ public class ServiceOrder {
     private List<OrderItem> items;
     private OrderStatus status;
     private LocalDateTime creationDate;
+    private LocalDateTime updatedAt;
     private LocalDateTime finishDate;
     private BigDecimal totalAmount;
+    private final List<Object> domainEvents = new ArrayList<>();
 
     public void calculateTotalAmount() {
         BigDecimal totalServices = this.services.stream()
@@ -86,6 +89,14 @@ public class ServiceOrder {
         this.creationDate = creationDate;
     }
 
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
     public LocalDateTime getFinishDate() {
         return finishDate;
     }
@@ -100,5 +111,42 @@ public class ServiceOrder {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public BudgetApprovedEvent approveBudget() {
+        if (this.status != OrderStatus.AWAITING_APPROVAL) {
+            throw new IllegalStateException(
+                String.format("Não é possível aprovar orçamento. Status atual: %s. Status esperado: AWAITING_APPROVAL", 
+                    this.status)
+            );
+        }
+
+        this.status = OrderStatus.IN_PROGRESS;
+        BudgetApprovedEvent event = new BudgetApprovedEvent(this.id);
+        this.domainEvents.add(event);
+        return event;
+    }
+
+    public BudgetRefusedEvent refuseBudget() {
+        if (this.status != OrderStatus.AWAITING_APPROVAL) {
+            throw new IllegalStateException(
+                String.format("Não é possível recusar orçamento. Status atual: %s. Status esperado: AWAITING_APPROVAL", 
+                    this.status)
+            );
+        }
+
+        this.status = OrderStatus.REFUSED;
+        this.finishDate = LocalDateTime.now();
+        BudgetRefusedEvent event = new BudgetRefusedEvent(this.id);
+        this.domainEvents.add(event);
+        return event;
+    }
+
+    public List<Object> getDomainEvents() {
+        return new ArrayList<>(domainEvents);
+    }
+
+    public void clearDomainEvents() {
+        this.domainEvents.clear();
     }
 }

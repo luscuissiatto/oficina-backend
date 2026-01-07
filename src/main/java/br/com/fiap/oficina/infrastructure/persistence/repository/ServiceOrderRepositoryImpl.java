@@ -47,6 +47,7 @@ public class ServiceOrderRepositoryImpl implements ServiceOrderRepository {
         data.setStatus(domain.getStatus());
         data.setCreationDate(domain.getCreationDate());
         data.setFinishDate(domain.getFinishDate());
+        data.setUpdatedAt(domain.getUpdatedAt());
         data.setTotalAmount(domain.getTotalAmount());
 
         ClientData clientData = new ClientData();
@@ -117,6 +118,7 @@ public class ServiceOrderRepositoryImpl implements ServiceOrderRepository {
         domain.setStatus(data.getStatus());
         domain.setCreationDate(data.getCreationDate());
         domain.setFinishDate(data.getFinishDate());
+        domain.setUpdatedAt(data.getUpdatedAt());
         domain.setTotalAmount(data.getTotalAmount());
 
         domain.setClient(clientRepository.findById(data.getClient().getId()).orElse(null));

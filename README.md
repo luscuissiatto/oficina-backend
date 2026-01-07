@@ -59,74 +59,295 @@ A arquitetura foi redesenhada para suportar escalabilidade e automação.
 
 ---
 
-## 🚀 Como Executar o Projeto
+## 🚀 Guia Rápido de Execução (5 minutos)
 
-Existem duas formas de executar o projeto localmente. A primeira, com Terraform e Kubernetes, é o ambiente completo da Fase 2. A segunda, com Docker Compose, é uma alternativa mais simples para desenvolvimento rápido.
+Escolha uma das três formas de executar o projeto conforme sua necessidade:
 
-### Método 1: Ambiente Completo com Terraform e Kubernetes (Recomendado)
+### 🐳 Caminho 1: Docker Compose (Mais Rápido)
 
-Esta abordagem simula o ambiente de produção, orquestrando todos os serviços com Kubernetes.
+Ideal para desenvolvimento rápido e testes locais.
 
-**Pré-requisitos:**
-* Docker
-* Terraform
-* Kind
-* kubectl
+**Pré-requisitos:** Docker
 
-**Passos:**
+**Comandos:**
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd oficina
+docker compose up --build
+```
 
-1.  **Clone o repositório:**
-    ```sh
-    git clone <URL_DO_SEU_REPOSITORIO>
-    cd <NOME_DA_PASTA_DO_PROJETO>
-    ```
+**Acesso:**
+- API: `http://localhost:8080/swagger-ui/index.html`
+- MailHog: `http://localhost:8025`
 
-2.  **Provisione o Cluster Kubernetes:**
-    Navegue até a pasta `infra` e execute os comandos do Terraform.
-    ```sh
+---
+
+### ☸️ Caminho 2: Kubernetes com Terraform (Produção-like)
+
+Ambiente completo com orquestração Kubernetes e provisionamento via Terraform.
+
+**Pré-requisitos:** Docker, Terraform, Kind, kubectl
+
+**Comandos:**
+```bash
+# 1. Provisionar cluster e banco de dados
     cd infra
     terraform init
-    terraform apply
-    ```
-    Confirme a execução digitando `yes`. Aguarde a criação do cluster.
+terraform apply -auto-approve
 
-3.  **Construa a Imagem Docker da Aplicação:**
-    Volte para a raiz do projeto e execute o build.
-    ```sh
+# 2. Construir e carregar imagem
     cd ..
     docker build -t oficina-app:latest .
-    ```
+kind load docker-image oficina-app:latest --name oficina-cluster
 
-4.  **Carregue a Imagem para o Cluster:**
-    O Kind precisa que a imagem local seja carregada para dentro do seu ambiente.
-    ```sh
-    kind load docker-image oficina-app:latest --name oficina-cluster
-    ```
+# 3. Deploy da aplicação
+kubectl apply -f k8s/
 
-5.  **Implante a Aplicação e os Serviços:**
-    Aplique todos os manifestos Kubernetes de uma só vez.
-    ```sh
-    kubectl apply -f k8s/
-    ```
+# 4. Verificar status
+kubectl get pods
+```
 
-6.  **Verifique se tudo está funcionando:**
-    Aguarde um ou dois minutos e verifique o status dos pods. Todos devem estar `Running`.
-    ```sh
-    kubectl get pods
-    ```
+**Acesso:**
+- API: `http://localhost:8081/swagger-ui/index.html`
+- MailHog: `kubectl port-forward svc/mailhog-service 8025:8025` (em outro terminal)
 
-### Método 2: Ambiente Simplificado com Docker Compose
+**Nota:** O módulo Terraform de banco de dados (`infra/modules/database`) provisiona o PostgreSQL com state próprio, variáveis e outputs que alimentam o deploy da API.
 
-Esta abordagem utiliza o `docker-compose.yml` para subir a aplicação e suas dependências diretas, sem a camada de orquestração do Kubernetes.
+---
 
-**Pré-requisitos:**
-* Docker
+### 💻 Caminho 3: Execução Local
 
-**Passos:**
-1.  **Clone o repositório.**
-2.  Na raiz do projeto, execute:
-    ```sh
-    docker compose up --build
+Para desenvolvimento sem containers.
+
+**Pré-requisitos:** Java 17+, Maven, PostgreSQL rodando localmente
+
+**Comandos:**
+```bash
+# 1. Configurar banco de dados local
+createdb oficina_db
+# ou via psql: CREATE DATABASE oficina_db;
+
+# 2. Configurar variáveis de ambiente (veja tabela abaixo)
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/oficina_db
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=sua_senha
+export JWT_SECRET=sua-chave-secreta-jwt
+export SPRING_MAIL_HOST=localhost
+export SPRING_MAIL_PORT=1025
+
+# 3. Executar aplicação
+./mvnw spring-boot:run
+```
+
+**Acesso:**
+- API: `http://localhost:8080/swagger-ui/index.html`
+
+---
+
+## 📋 Variáveis de Ambiente
+
+| Variável | Descrição | Valor Padrão | Exemplo |
+|----------|-----------|--------------|---------|
+| `SPRING_DATASOURCE_URL` | URL de conexão JDBC com o banco PostgreSQL | `jdbc:postgresql://localhost:5432/oficina_db` | `jdbc:postgresql://postgres-service:5432/oficina_db` |
+| `SPRING_DATASOURCE_USERNAME` | Usuário do banco de dados | `postgres` | `admin` |
+| `SPRING_DATASOURCE_PASSWORD` | Senha do banco de dados | - | `senhaSuperSecreta` |
+| `JWT_SECRET` | Chave secreta para assinatura de tokens JWT | `a-chave-secreta-para-a-sua-api-deve-ser-bem-longa-e-segura` | `minha-chave-super-secreta-jwt-2024` |
+| `SPRING_MAIL_HOST` | Host do servidor de email (SMTP) | `localhost` | `mailhog-service` |
+| `SPRING_MAIL_PORT` | Porta do servidor de email | `1025` | `1025` |
+| `APP_ADMIN_DEFAULT_PASSWORD` | Senha padrão do usuário admin criado na inicialização | `password` | `admin123` |
+| `SPRING_JPA_HIBERNATE_DDL_AUTO` | Estratégia de criação/atualização do schema | `update` | `update`, `create`, `none` |
+| `APP_DATA_INITIALIZE` | Habilita inicialização de dados de exemplo | `true` | `true`, `false` |
+
+---
+
+## 📖 Roteiro de Chamadas - Fluxo Ponta a Ponta
+
+Este roteiro demonstra o fluxo completo do sistema, desde a autenticação até a aprovação/recusa de orçamento.
+
+### 1. Autenticação
+
+```bash
+# POST /login
+curl -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "password"
+  }'
+
+# Resposta: { "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+```
+
+**Guarde o token retornado para usar nos próximos passos.**
+
+### 2. Criar Cliente
+
+```bash
+# POST /clients
+curl -X POST http://localhost:8080/clients \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "name": "João Silva",
+    "document": "12345678900",
+    "email": "joao@example.com",
+    "phone": "11999999999"
+  }'
+
+# Resposta: { "id": 1, "name": "João Silva", ... }
+```
+
+### 3. Criar Veículo
+
+```bash
+# POST /vehicles
+curl -X POST http://localhost:8080/vehicles \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "clientId": 1,
+    "brand": "Toyota",
+    "model": "Corolla",
+    "year": 2020,
+    "plate": "ABC1234"
+  }'
+
+# Resposta: { "id": 1, "plate": "ABC1234", ... }
+```
+
+### 4. Criar Serviço
+
+```bash
+# POST /services
+curl -X POST http://localhost:8080/services \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "name": "Troca de Óleo",
+    "description": "Troca completa de óleo e filtro",
+    "price": 150.00
+  }'
+
+# Resposta: { "id": 1, "name": "Troca de Óleo", ... }
+```
+
+### 5. Criar Peça
+
+```bash
+# POST /parts
+curl -X POST http://localhost:8080/parts \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "name": "Filtro de Óleo",
+    "description": "Filtro de óleo original",
+    "price": 45.00,
+    "stockQuantity": 10
+  }'
+
+# Resposta: { "id": 1, "name": "Filtro de Óleo", ... }
+```
+
+### 6. Criar Ordem de Serviço
+
+```bash
+# POST /service-orders
+curl -X POST http://localhost:8080/service-orders \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "clientId": 1,
+    "vehicleId": 1,
+    "serviceIds": [1],
+    "items": [
+      {
+        "partId": 1,
+        "quantity": 1
+      }
+    ]
+  }'
+
+# Resposta: { "id": 1, "status": "RECEIVED", "totalAmount": 195.00, ... }
+```
+
+### 7. Atualizar Status para "Em Diagnóstico"
+
+```bash
+# PATCH /service-orders/1/status
+curl -X PATCH http://localhost:8080/service-orders/1/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "newStatus": "IN_DIAGNOSIS"
+  }'
+```
+
+### 8. Atualizar Status para "Aguardando Aprovação"
+
+```bash
+# PATCH /service-orders/1/status
+curl -X PATCH http://localhost:8080/service-orders/1/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "newStatus": "AWAITING_APPROVAL"
+  }'
+
+# Um email será enviado ao cliente com o orçamento
+```
+
+### 9a. Aprovar Orçamento
+
+```bash
+# POST /service-orders/1/approve
+curl -X POST http://localhost:8080/service-orders/1/approve \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI"
+
+# Resposta: { "id": 1, "status": "IN_PROGRESS", ... }
+# O estoque das peças é debitado automaticamente
+# Um email de confirmação é enviado ao cliente
+```
+
+### 9b. Recusar Orçamento (Alternativa)
+
+```bash
+# POST /service-orders/1/refuse
+curl -X POST http://localhost:8080/service-orders/1/refuse \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI"
+
+# Resposta: { "id": 1, "status": "REFUSED", ... }
+# A ordem de serviço é finalizada
+# Um email de recusa é enviado ao cliente
+```
+
+### 10. Consultar Status (Endpoint Público)
+
+```bash
+# GET /service-orders/status?document=12345678900&plate=ABC1234
+curl -X GET "http://localhost:8080/service-orders/status?document=12345678900&plate=ABC1234"
+
+# Resposta: { "orderId": 1, "status": "IN_PROGRESS" }
+# Não requer autenticação
+```
+
+### 11. Finalizar Ordem de Serviço
+
+```bash
+# PATCH /service-orders/1/status
+curl -X PATCH http://localhost:8080/service-orders/1/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "newStatus": "COMPLETED"
+  }'
+
+# PATCH /service-orders/1/status (Entrega)
+curl -X PATCH http://localhost:8080/service-orders/1/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -d '{
+    "newStatus": "DELIVERED"
+  }'
     ```
 
 ---
@@ -151,6 +372,69 @@ Esta abordagem utiliza o `docker-compose.yml` para subir a aplicação e suas de
 3.  Clique no botão **"Authorize"**, cole o token no campo (precedido por `Bearer `) e confirme.
 4.  Agora você pode executar todos os outros endpoints protegidos.
 
+---
+
+## 📊 Horizontal Pod Autoscaler (HPA)
+
+O sistema utiliza HPA para escalar automaticamente os pods da aplicação baseado na utilização de CPU.
+
+### Configuração do HPA
+
+O HPA está configurado para:
+- **Mínimo de réplicas:** 1
+- **Máximo de réplicas:** 5
+- **Métrica:** CPU com utilização média de 50%
+
+### Comando de Carga Utilizado
+
+Para testar o HPA, utilizamos o `kubectl run` com múltiplas requisições simultâneas:
+
+```bash
+# Gerar carga na aplicação
+kubectl run load-generator --image=busybox --restart=Never -- /bin/sh -c \
+  "while true; do wget -q -O- http://oficina-service:8080/service-orders; sleep 0.1; done"
+
+# Ou usando Apache Bench (se disponível)
+kubectl run ab-test --image=httpd --restart=Never -- ab -n 10000 -c 10 \
+  http://oficina-service:8080/service-orders
+```
+
+### Monitoramento do HPA
+
+```bash
+# Verificar status do HPA
+kubectl get hpa oficina-hpa
+
+# Saída esperada:
+# NAME           REFERENCE                 TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+# oficina-hpa    Deployment/oficina-app    50%/50%    1         5         3          5m
+```
+
+### Monitoramento de Recursos
+
+```bash
+# Ver utilização de recursos dos pods
+kubectl top pods
+
+# Saída esperada durante carga:
+# NAME                              CPU(cores)   MEMORY(bytes)
+# oficina-deployment-7d8f9c4b5-abc   250m         512Mi
+# oficina-deployment-7d8f9c4b5-def   180m         480Mi
+# oficina-deployment-7d8f9c4b5-ghi   220m         495Mi
+```
+
+### Resultados Esperados
+
+Durante a execução da carga:
+1. O HPA detecta aumento na utilização de CPU acima de 50%
+2. Escala automaticamente de 1 para até 5 réplicas
+3. Distribui o tráfego entre os pods
+4. Quando a carga diminui, reduz gradualmente o número de réplicas
+
+**Observação:** Para visualizar o HPA em ação, é necessário que o deployment tenha recursos de CPU definidos e o Metrics Server esteja instalado no cluster.
+
+---
+
 ## 🔄 Fluxo de CI/CD
 
 A pipeline no GitHub Actions é acionada a cada `push` na branch `main`. Ela executa os seguintes passos:
@@ -159,3 +443,23 @@ A pipeline no GitHub Actions é acionada a cada `push` na branch `main`. Ela exe
 3.  **Publica:** Envia a imagem para o GitHub Container Registry, pronta para ser usada em um deploy.
 
 Você pode acompanhar as execuções na aba **[Actions](https://github.com/luscuissiatto/tech-challenge-oficina/actions)** do repositório.
+
+---
+
+## 🎯 Funcionalidades Implementadas
+
+### Gestão de Orçamentos
+
+O sistema agora possui rotas específicas para aprovação e recusa de orçamentos:
+
+- **`POST /service-orders/{id}/approve`**: Aprova o orçamento de uma ordem de serviço
+  - Transição: `AWAITING_APPROVAL` → `IN_PROGRESS`
+  - Debita automaticamente o estoque das peças
+  - Envia email de confirmação ao cliente
+
+- **`POST /service-orders/{id}/refuse`**: Recusa o orçamento de uma ordem de serviço
+  - Transição: `AWAITING_APPROVAL` → `REFUSED`
+  - Finaliza a ordem de serviço
+  - Envia email de recusa ao cliente
+
+As transições de estado são validadas no agregado `ServiceOrder` com regras de negócio e eventos de domínio (`BudgetApprovedEvent` e `BudgetRefusedEvent`).

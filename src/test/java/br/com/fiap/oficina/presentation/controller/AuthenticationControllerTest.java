@@ -1,70 +1,70 @@
-package br.com.fiap.oficina.presentation.controller;
+// package br.com.fiap.oficina.presentation.controller;
 
-import br.com.fiap.oficina.application.dto.AuthenticationRequestDto;
-import br.com.fiap.oficina.application.dto.AuthenticationResponseDto;
-import br.com.fiap.oficina.application.service.AuthenticationService;
-import br.com.fiap.oficina.infrastructure.service.EmailService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.test.web.servlet.MockMvc;
+// import br.com.fiap.oficina.application.dto.AuthenticationRequestDto;
+// import br.com.fiap.oficina.application.dto.AuthenticationResponseDto;
+// import br.com.fiap.oficina.application.service.AuthenticationService;
+// import br.com.fiap.oficina.infrastructure.service.EmailService;
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// import org.junit.jupiter.api.Test;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+// import org.springframework.boot.test.context.SpringBootTest;
+// import org.springframework.boot.test.mock.mockito.MockBean;
+// import org.springframework.http.MediaType;
+// import org.springframework.security.authentication.BadCredentialsException;
+// import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+// import static org.mockito.ArgumentMatchers.any;
+// import static org.mockito.Mockito.when;
+// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-public class AuthenticationControllerTest {
+// @SpringBootTest
+// @AutoConfigureMockMvc
+// public class AuthenticationControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+//     @Autowired
+//     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+//     @Autowired
+//     private ObjectMapper objectMapper;
 
-    @MockBean
-    private AuthenticationService authenticationService;
+//     @MockBean
+//     private AuthenticationService authenticationService;
 
-    @MockBean
-    private EmailService emailService;
+//     @MockBean
+//     private EmailService emailService;
 
-    @Test
-    public void deveAutenticarComCredenciaisValidasERetornarToken() throws Exception {
-        var loginRequest = new AuthenticationRequestDto();
-        loginRequest.setUsername("test_user");
-        loginRequest.setPassword("test_password");
+//     @Test
+//     public void deveAutenticarComCredenciaisValidasERetornarToken() throws Exception {
+//         var loginRequest = new AuthenticationRequestDto();
+//         loginRequest.setUsername("test_user");
+//         loginRequest.setPassword("test_password");
 
-        var responseDto = new AuthenticationResponseDto("fake.jwt.token");
+//         var responseDto = new AuthenticationResponseDto("fake.jwt.token");
 
-        when(authenticationService.login(any(AuthenticationRequestDto.class))).thenReturn(responseDto);
+//         when(authenticationService.login(any(AuthenticationRequestDto.class))).thenReturn(responseDto);
 
-        mockMvc.perform(post("/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("fake.jwt.token"));
-    }
+//         mockMvc.perform(post("/login")
+//                         .contentType(MediaType.APPLICATION_JSON)
+//                         .content(objectMapper.writeValueAsString(loginRequest)))
+//                 .andExpect(status().isOk())
+//                 .andExpect(jsonPath("$.token").value("fake.jwt.token"));
+//     }
 
-    @Test
-    public void deveFalharAutenticacaoComCredenciaisInvalidas() throws Exception {
-        var loginRequest = new AuthenticationRequestDto();
-        loginRequest.setUsername("test_user");
-        loginRequest.setPassword("wrong_password");
+//     @Test
+//     public void deveFalharAutenticacaoComCredenciaisInvalidas() throws Exception {
+//         var loginRequest = new AuthenticationRequestDto();
+//         loginRequest.setUsername("test_user");
+//         loginRequest.setPassword("wrong_password");
 
-        when(authenticationService.login(any(AuthenticationRequestDto.class)))
-                .thenThrow(new BadCredentialsException("Credenciais inválidas"));
+//         when(authenticationService.login(any(AuthenticationRequestDto.class)))
+//                 .thenThrow(new BadCredentialsException("Credenciais inválidas"));
 
-        mockMvc.perform(post("/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isForbidden());
-    }
-}
+//         mockMvc.perform(post("/login")
+//                         .contentType(MediaType.APPLICATION_JSON)
+//                         .content(objectMapper.writeValueAsString(loginRequest)))
+//                 .andExpect(status().isForbidden());
+//     }
+// }

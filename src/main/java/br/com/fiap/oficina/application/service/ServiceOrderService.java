@@ -101,6 +101,59 @@ public class ServiceOrderService {
         return updatedOrder;
     }
 
+    @Transactional
+    public ServiceOrder approveBudget(Long id) {
+        ServiceOrder serviceOrder = findById(id);
+        
+        try {
+            // Aprova o orçamento e gera evento de domínio
+            serviceOrder.approveBudget();
+            
+            // Processar evento: debitar estoque ao aprovar
+            debitPartsFromStock(serviceOrder);
+            
+            ServiceOrder savedOrder = serviceOrderRepository.save(serviceOrder);
+            
+            // Processar eventos de domínio
+            processDomainEvents(serviceOrder);
+            
+            emailService.sendStatusUpdateNotification(savedOrder);
+            
+            return savedOrder;
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ServiceOrder refuseBudget(Long id) {
+        ServiceOrder serviceOrder = findById(id);
+        
+        try {
+            // Recusa o orçamento e gera evento de domínio
+            serviceOrder.refuseBudget();
+            
+            ServiceOrder savedOrder = serviceOrderRepository.save(serviceOrder);
+            
+            // Processar eventos de domínio
+            processDomainEvents(serviceOrder);
+            
+            emailService.sendStatusUpdateNotification(savedOrder);
+            
+            return savedOrder;
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    private void processDomainEvents(ServiceOrder serviceOrder) {
+        // Obtém e processa eventos de domínio
+        // Por enquanto, apenas limpamos os eventos após processamento
+        // Futuramente, aqui poderiam ser processados outros handlers de eventos
+        serviceOrder.getDomainEvents();
+        serviceOrder.clearDomainEvents();
+    }
+
     private void debitPartsFromStock(ServiceOrder serviceOrder) {
         for (OrderItem item : serviceOrder.getItems()) {
             Part part = item.getPart();

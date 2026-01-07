@@ -65,4 +65,24 @@ public class ServiceOrderController {
     public ResponseEntity<List<ServiceOrderSummaryDto>> getOrdersByClientId(@PathVariable Long clientId) {
         return ResponseEntity.ok(serviceOrderService.findSummariesByClientId(clientId));
     }
+
+    @PostMapping("/{id}/approve")
+    @Operation(summary = "Aprovar orçamento de uma Ordem de Serviço", 
+               description = "Aprova o orçamento de uma ordem de serviço que está aguardando aprovação. " +
+                           "Transição: AWAITING_APPROVAL -> IN_PROGRESS. " +
+                           "Ao aprovar, o estoque das peças é debitado automaticamente.")
+    public ResponseEntity<ServiceOrder> approveBudget(@PathVariable Long id) {
+        ServiceOrder approvedOrder = serviceOrderService.approveBudget(id);
+        return ResponseEntity.ok(approvedOrder);
+    }
+
+    @PostMapping("/{id}/refuse")
+    @Operation(summary = "Recusar orçamento de uma Ordem de Serviço",
+               description = "Recusa o orçamento de uma ordem de serviço que está aguardando aprovação. " +
+                           "Transição: AWAITING_APPROVAL -> REFUSED. " +
+                           "A ordem de serviço é finalizada ao recusar.")
+    public ResponseEntity<ServiceOrder> refuseBudget(@PathVariable Long id) {
+        ServiceOrder refusedOrder = serviceOrderService.refuseBudget(id);
+        return ResponseEntity.ok(refusedOrder);
+    }
 }
