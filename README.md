@@ -20,12 +20,12 @@ A aplicação está rodando na AWS. Utilize os links abaixo para testar:
 ### Visão Geral (Componentes)
 A arquitetura segue o padrão de microsserviços/serverless híbrido, utilizando EKS para o Core e Lambda para Auth.
 
-![Diagrama de Componentes](https://www.mermaidchart.com/d/439442c2-4c65-426f-b4d4-027113368b52)
+https://www.mermaidchart.com/d/439442c2-4c65-426f-b4d4-027113368b52
 
 ### Modelo de Dados (ER)
 Estrutura relacional do banco de dados PostgreSQL.
 
-![Diagrama ER](https://www.mermaidchart.com/d/178e8872-a3b7-4227-9fca-086b241b8c32)
+https://www.mermaidchart.com/d/178e8872-a3b7-4227-9fca-086b241b8c32
 
 ---
 
@@ -64,7 +64,7 @@ Faça uma requisição `POST` para a URL da Lambda de Autenticação com o CPF c
 ### Passo 4: Utilizar a API
 Agora você pode acessar rotas protegidas, como criar ordens de serviço (`POST /service-orders`) ou consultar status. O fluxo de autenticação ocorre conforme o diagrama abaixo:
 
-![Diagrama de Sequência](https://www.mermaidchart.com/d/fc257fb3-f4d3-4a35-b105-e9aa7b42cdd0)
+https://www.mermaidchart.com/d/fc257fb3-f4d3-4a35-b105-e9aa7b42cdd0
 
 ## 🚀 Tecnologias Utilizadas
 - Java 17 (LTS)
