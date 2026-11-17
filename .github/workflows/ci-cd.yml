@@ -21,9 +21,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # ALTERAÇÃO AQUI: Trocamos 'test' por 'package' pulando verificação de erros
-      - name: Build ignoring Tests
-        run: mvn clean package -Dmaven.test.skip=true
+      - name: Build and test
+        run: mvn -B clean verify
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
