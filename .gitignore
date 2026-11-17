@@ -46,3 +46,13 @@ build/
 # Arquivos de Sistema Operacional
 .DS_Store
 Thumbs.db
+# Terraform (estado e providers locais nunca vão para o repositório)
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Kubeconfig gerado pelo cluster local (contém credenciais)
+infra/oficina-cluster-config
+
+# Variáveis locais
+.env
