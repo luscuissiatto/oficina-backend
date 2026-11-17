@@ -1,5 +1,7 @@
 # 🔧 Oficina Mecânica - Backend API
 
+> **📦 Versão anterior do projeto.** Este repositório é da fase monolítica do sistema de oficina mecânica (Pós-Graduação em Arquitetura de Software, FIAP). A versão final, com microsserviços, saga e integração com o Mercado Pago, está na organização **[oficina-mecanica-app](https://github.com/oficina-mecanica-app)**.
+
 ## 📋 Sobre o Projeto
 Este repositório contém a aplicação principal (**Core**) do sistema de gestão de oficinas mecânicas. Trata-se de uma API RESTful robusta desenvolvida em **Java com Spring Boot**, responsável por orquestrar todas as regras de negócio, incluindo cadastro de clientes, gestão de veículos e o ciclo de vida completo das Ordens de Serviço (orçamento, aprovação, execução e finalização).
 
